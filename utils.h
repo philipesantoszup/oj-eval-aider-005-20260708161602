@@ -14,7 +14,7 @@ inline int QoiColorHash(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u) {
 /// read a character from the input stream
 inline char QoiReadChar() {
     char ch;
-    std::cin >> ch;
+    if (!std::cin.get(ch)) return 0;
     return ch;
 }
 
