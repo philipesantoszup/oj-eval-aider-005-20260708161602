@@ -106,7 +106,6 @@ bool QoiEncode(uint32_t width, uint32_t height, uint8_t channels, uint8_t colors
             } else {
                 if (dr == (uint8_t)((dg * 4) & 0xFF) && db == (uint8_t)((dg * 2) & 0xFF) && (dg <= 64 || dg >= 192)) {
                     QoiWriteU8(QOI_OP_LUMA_TAG | (dg & 63));
-                    QoiWriteU8(dg);
                 } else {
                     if (channels == 3) {
                         QoiWriteU8(QOI_OP_RGB_TAG);
@@ -170,13 +169,12 @@ bool QoiDecode(uint32_t &width, uint32_t &height, uint8_t &channels, uint8_t &co
 
         if ((tag & QOI_MASK_2) == QOI_OP_RUN_TAG) {
             int run = tag & 63;
-            if (run == 0) run = 63;
             uint8_t r = QoiReadU8();
             uint8_t g = QoiReadU8();
             uint8_t b = QoiReadU8();
             uint8_t a = (channels == 4) ? QoiReadU8() : 255u;
             
-            for (int j = 0; j < run && decoded_px < px_num; ++j) {
+            for (int j = 0; j <= run && decoded_px < px_num; ++j) {
                 QoiWriteU8(r); QoiWriteU8(g); QoiWriteU8(b);
                 if (channels == 4) QoiWriteU8(a);
                 decoded_px++;
@@ -192,7 +190,7 @@ bool QoiDecode(uint32_t &width, uint32_t &height, uint8_t &channels, uint8_t &co
             curr[2] = history[idx][2];
             curr[3] = history[idx][3];
         } else if ((tag & QOI_MASK_2) == QOI_OP_DIFF_TAG) {
-            uint8_t dr = QoiReadU8();
+            uint8_t dr = tag & 63;
             uint8_t dg = QoiReadU8();
             uint8_t db = QoiReadU8();
             curr[0] = pre[0] + dr;
@@ -201,7 +199,7 @@ bool QoiDecode(uint32_t &width, uint32_t &height, uint8_t &channels, uint8_t &co
             if (channels == 4) curr[3] = pre[3] + QoiReadU8();
             else curr[3] = 255u;
         } else if ((tag & QOI_MASK_2) == QOI_OP_LUMA_TAG) {
-            uint8_t dg = QoiReadU8();
+            uint8_t dg = tag & 63;
             curr[0] = pre[0] + (uint8_t)((dg * 4) & 0xFF);
             curr[1] = pre[1] + dg;
             curr[2] = pre[2] + (uint8_t)((dg * 2) & 0xFF);
