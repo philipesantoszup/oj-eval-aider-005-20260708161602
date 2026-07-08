@@ -92,9 +92,9 @@ bool QoiEncode(uint32_t width, uint32_t height, uint8_t channels, uint8_t colors
             uint8_t db = curr[2] - pre[2];
             uint8_t da = curr[3] - pre[3];
 
-            bool fits_diff = (dr <= 64 && dr >= 192) && (dg <= 64 && dg >= 192) && (db <= 64 && db >= 192);
+            bool fits_diff = (dr <= 64 || dr >= 192) && (dg <= 64 || dg >= 192) && (db <= 64 || db >= 192);
             if (channels == 4) {
-                fits_diff = fits_diff && (da <= 64 && da >= 192);
+                fits_diff = fits_diff && (da <= 64 || da >= 192);
             }
 
             if (fits_diff) {
@@ -104,7 +104,7 @@ bool QoiEncode(uint32_t width, uint32_t height, uint8_t channels, uint8_t colors
                 QoiWriteU8(db);
                 if (channels == 4) QoiWriteU8(da);
             } else {
-                if (dr == (uint8_t)((dg * 4) & 0xFF) && db == (uint8_t)((dg * 2) & 0xFF) && (dg <= 64 && dg >= 192)) {
+                if (dr == (uint8_t)((dg * 4) & 0xFF) && db == (uint8_t)((dg * 2) & 0xFF) && (dg <= 64 || dg >= 192)) {
                     QoiWriteU8(QOI_OP_LUMA_TAG | (dg & 63));
                     QoiWriteU8(dg);
                 } else {
